@@ -34,7 +34,9 @@ sub test_basic_key_pair {
     ok Finance::Libdogecoin::FFI::verify_p2pkh_address( $pub_key ),
         '... and public key should be a valid P2PKH address';
 
-    ok ! Finance::Libdogecoin::FFI::verify_key_pair( $priv_key =~ s/.$/Z/r, $pub_key =~ s/.$/Z/r ),
+    (my $mangled_priv_key = $priv_key) =~ s/.$/Z/;
+    (my $mangled_pub_key  = $pub_key)  =~ s/.$/Z/;
+    ok ! Finance::Libdogecoin::FFI::verify_key_pair( $mangled_priv_key, $mangled_pub_key ),
         '... and should not verify mangled pairs';
 
     Finance::Libdogecoin::FFI::context_stop();

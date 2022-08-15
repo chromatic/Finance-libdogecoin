@@ -41,7 +41,7 @@ sub _call_with_buffer_pair {
 }
 
 sub generate_key_pair {
-    my $is_testnet = shift ? 1 : 0;
+    my $is_testnet = shift( @_ ) ? 1 : 0;
     return _call_with_buffer_pair( $is_testnet, 53, 34, \&generatePrivPubKeypair );
 }
 
@@ -57,7 +57,7 @@ sub verify_p2pkh_address {
 }
 
 sub generate_hd_master_pub_key_pair {
-    my $chaincode = shift ? 1 : 0;
+    my $chaincode = shift( @_ ) ? 1 : 0;
     return _call_with_buffer_pair( $chaincode, 128, 35, \&generateHDMasterPubKeypair );
 }
 
