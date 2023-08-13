@@ -10,6 +10,7 @@ use FFI::Platypus::Buffer qw( buffer_to_scalar grow set_used_length );
 
 use Alien::Libdogecoin;
 
+
 {
     my $ffi = FFI::Platypus->new(
         api => 1,
@@ -76,7 +77,15 @@ sub verify_master_priv_pub_keypair {
     return verifyHDMasterPubKeypair( $priv_key, $pub_key, $chaincode );
 }
 
-sub get_derived_hd_key_by_path {
+sub get_derived_hd_address {
+    my ($master_priv_key, $account, $is_change, $address_index, $private) = @_;
+    $private = $private ? 1 : 0;
+    grow my $pubkeybuf, 112;
+    getDerivedHDAddress($master_priv_key, $account, $is_change, $address_index, $pubkeybuf, $private);
+    return substr($pubkeybuf, 0, 111);
+}
+
+sub get_derived_hd_address_by_path {
     my ($master_priv_key, $path, $private) = @_;
     $private = $private ? 1 : 0;
     grow my $pubkeybuf, 112;
@@ -190,22 +199,22 @@ value to indicate whether the pair both match and are valid for the given
 network. In other words, for the given network, can the public key be derived
 from the private key?
 
-=head3 C<get_derived_hd_key_by_path( $master_private_hd_key, $path, $is_public )>
+=head3 C<get_derived_hd_address_by_path( $master_private_hd_key, $path, $private )>
 
-The boolean C<$is_public> argument is optional; the default value is false.
-While this matches the C<libdogecoin> API, it may seem backwards to you.
+Derives and returns an address derived from the HD master key according to the
+provided path. This path is a string of the form C<m/0/0/0/0/0>, where each
+number is the index of the child key to derive. The first number is the child
+number of the master key and so on. This derivation is 100% deterministic.
 
-Derives and returns a private or public key derived from the HD master key
-according to the provided path. This path is a string of the form
-C<m/0/0/0/0/0>, where each number is the index of the child key to derive. The
-first number is the child number of the master key and so on. This derivation
-is 100% deterministic.
+Finally, the private flag determines whether to return a private or public
+derived address. If true, the returned address is private.
 
 Do not share the private key. Do not lose the private key.
 
 =head2 AUTHOR, COPYRIGHT, and LICENSE
 
-Copyright (c) 2022-2023, chromatic. Interface based on and derived from the C<libdogecoin> Python bindings.
+Copyright (c) 2022-2023, chromatic. Interface based on and derived from the
+C<libdogecoin> Python bindings.
 
 =cut
 
@@ -218,4 +227,5 @@ int,generateDerivedHDPubkey,string,string
 int,verifyPrivPubKeypair,string,string,bool
 int,verifyHDMasterPubKeypair,string,string,bool
 int,verifyP2pkhAddress,string,uchar
-void,getDerivedHDAddressByPath,string,string,string,bool
+int,getDerivedHDAddressByPath,string,string,string,bool
+int,getDerivedHDAddress,string,uint32_t,bool,uint32_t,string,bool

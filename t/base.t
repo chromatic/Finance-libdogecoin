@@ -16,7 +16,8 @@ sub main {
 
     test_generate_hd_key_pair();
     test_generate_derived_hd_key();
-    test_generate_derived_hd_key_by_path();
+    test_generate_derived_hd_key_address();
+    test_generate_derived_hd_address_by_path();
 
     done_testing;
     return 0;
@@ -132,7 +133,54 @@ sub test_generate_derived_hd_key {
     Finance::Libdogecoin::FFI::context_stop();
 }
 
-sub test_generate_derived_hd_key_by_path {
+sub test_generate_derived_hd_key_address {
+    Finance::Libdogecoin::FFI::context_start();
+
+    # taken from libdogecoin examples; don't use these keys apart from testing
+    my $mainnet_priv_key_master = 'dgpv51eADS3spNJh8h13wso3DdDAw3EJRqWvftZyjTNCFEG7gqV6zsZmucmJR6xZfvgfmzUthVC6LNicBeNNDQdLiqjQJjPeZnxG8uW3Q3gCA3e';
+
+    my @public = (
+        [ 0, 0, 0 =>
+            "dgub8vXjuDpn2sTkerBdjSfq9kmjhaQsXHxyBkYrikw84GCYz9ozcdwvYPo5SSDWqZUVT5d4jrG8CHiGsC1M7pdETPhoKiQa92znT2vG9YaytBH" ],
+        [ 1, 0, 1 =>
+            "dgub8wdiEmcUJMWMxz36J7L7hP5Ge1uZpvHgEJvBkWgQa2wRYbLVyuWq3WWaiK3ZgYs893RqrgZN3QgRghPXkpRr7kdT44XVSaJuwMF1PTHi2mQ" ],
+    );
+
+
+    for my $public (@public) {
+        my ($account, $is_change, $index, $expected_address) = @$public;
+        my $derived_address = Finance::Libdogecoin::FFI::get_derived_hd_address(
+            $mainnet_priv_key_master,
+            $account,
+            $is_change,
+            $index,
+            0
+        );
+        is $derived_address, $expected_address,
+            'derived address by path should match example';
+    }
+
+    my %private = (
+        "m/44'/3'/0'/0/0" =>
+            "dgpv5BeiZXttUioRMzXUhD3s2uE9F23EhAwFu9meZeY9G99YS6hJCsQ9u6PRsAG3qfVwB1T7aQTVGLsmpxMiczV1dRDgzpbUxR7utpTRmN41iV7",
+        "m/44'/3'/1'/0/1" =>
+            "dgpv5Ckgu5gakCr2g8NwFsi9aXXgBTXvzoFxwi8ybQHRmutQzYDoa8y4QD6w94EEYFtinVGD3ZzZG89t8pedriw9L8VgPYKeQsUHoZQaKcSEqwr"
+    );
+
+    while (my ($path, $pubkey) = each %private) {
+        my $derived_priv_key = Finance::Libdogecoin::FFI::get_derived_hd_address_by_path(
+            $mainnet_priv_key_master,
+            $path,
+            1
+        );
+        is $derived_priv_key, $pubkey,
+            'derived priv key by path should match example';
+    }
+
+    Finance::Libdogecoin::FFI::context_stop();
+}
+
+sub test_generate_derived_hd_address_by_path {
     Finance::Libdogecoin::FFI::context_start();
 
     # taken from libdogecoin examples; don't use these keys apart from testing
@@ -147,7 +195,7 @@ sub test_generate_derived_hd_key_by_path {
 
 
     while (my ($path, $pubkey) = each %public) {
-        my $derived_pub_key = Finance::Libdogecoin::FFI::get_derived_hd_key_by_path(
+        my $derived_pub_key = Finance::Libdogecoin::FFI::get_derived_hd_address_by_path(
             $mainnet_priv_key_master,
             $path,
             0
@@ -164,7 +212,7 @@ sub test_generate_derived_hd_key_by_path {
     );
 
     while (my ($path, $pubkey) = each %private) {
-        my $derived_priv_key = Finance::Libdogecoin::FFI::get_derived_hd_key_by_path(
+        my $derived_priv_key = Finance::Libdogecoin::FFI::get_derived_hd_address_by_path(
             $mainnet_priv_key_master,
             $path,
             1
